@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
+import { useI18n } from '@/i18n'
 
 export function Celebration({ active }: { active: boolean }) {
+  const { t } = useI18n()
   return (
     <AnimatePresence>
       {active ? (
@@ -13,7 +15,7 @@ export function Celebration({ active }: { active: boolean }) {
         >
           <div className="flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
             <Sparkles size={16} />
-            Session complete
+            {t('timer.sessionComplete')}
           </div>
         </motion.div>
       ) : null}

@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Info, X } from 'lucide-react'
 import { useToastStore } from '@/store/useToastStore'
+import { useI18n } from '@/i18n'
 
 export function ToastViewport() {
   const toasts = useToastStore((state) => state.toasts)
   const dismiss = useToastStore((state) => state.dismiss)
+  const { t } = useI18n()
 
   return (
     <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-[min(100%-2rem,360px)] flex-col gap-2">
@@ -28,7 +30,7 @@ export function ToastViewport() {
             </div>
             <button
               type="button"
-              aria-label="Dismiss notification"
+              aria-label={t('toast.dismiss')}
               className="text-muted hover:text-text"
               onClick={() => dismiss(toast.id)}
             >

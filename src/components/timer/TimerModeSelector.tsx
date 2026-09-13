@@ -1,11 +1,6 @@
 import type { TimerMode } from '@/types/settings'
 import { cn } from '@/utils/cn'
-
-const modes: Array<{ id: TimerMode; label: string }> = [
-  { id: 'focus', label: 'Focus' },
-  { id: 'shortBreak', label: 'Short Break' },
-  { id: 'longBreak', label: 'Long Break' },
-]
+import { useI18n } from '@/i18n'
 
 interface TimerModeSelectorProps {
   value: TimerMode
@@ -13,6 +8,12 @@ interface TimerModeSelectorProps {
 }
 
 export function TimerModeSelector({ value, onChange }: TimerModeSelectorProps) {
+  const { t } = useI18n()
+  const modes: Array<{ id: TimerMode; label: string }> = [
+    { id: 'focus', label: t('timer.focus') },
+    { id: 'shortBreak', label: t('timer.shortBreak') },
+    { id: 'longBreak', label: t('timer.longBreak') },
+  ]
   return (
     <div className="mx-auto flex w-full max-w-md rounded-full border border-border bg-elevated/70 p-1" role="tablist">
       {modes.map((mode) => (

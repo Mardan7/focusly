@@ -9,14 +9,10 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { useTimerStore } from '@/store/useTimerStore'
 import { useUIStore } from '@/store/useUIStore'
 import { minutesToMs, remainingFromTimestamp, formatClock } from '@/utils/timer'
-
-const labels = {
-  focus: 'Focus session',
-  shortBreak: 'Short break',
-  longBreak: 'Long break',
-}
+import { useI18n } from '@/i18n'
 
 export function PomodoroTimer() {
+  const { t } = useI18n()
   const mode = useTimerStore((s) => s.mode)
   const status = useTimerStore((s) => s.status)
   const endsAt = useTimerStore((s) => s.endsAt)
@@ -48,14 +44,14 @@ export function PomodoroTimer() {
   return (
     <div className="relative mx-auto max-w-xl text-center">
       <TimerModeSelector value={mode} onChange={setMode} />
-      <p className="mt-8 text-xs font-semibold uppercase tracking-[0.28em] text-muted">{labels[mode]}</p>
+      <p className="mt-8 text-xs font-semibold uppercase tracking-[0.28em] text-muted">{mode === 'focus' ? t('timer.focusSession') : mode === 'shortBreak' ? t('timer.shortBreak') : t('timer.longBreak')}</p>
       <div className="relative mt-6">
         <TimerProgress progress={Number.isFinite(progress) ? progress : 0}>
           <p className="font-sans text-6xl font-semibold tracking-tight tabular-nums sm:text-7xl">
             {formatClock(remaining)}
           </p>
           <p className="mt-2 text-xs font-semibold uppercase tracking-[0.32em] text-muted">
-            {status === 'running' ? 'Live' : status === 'paused' ? 'Paused' : mode === 'focus' ? 'Focus' : 'Break'}
+            {status === 'running' ? t('timer.live') : status === 'paused' ? t('timer.paused') : mode === 'focus' ? t('timer.focus') : t('timer.break')}
           </p>
         </TimerProgress>
         <Celebration active={celebration} />
@@ -68,7 +64,7 @@ export function PomodoroTimer() {
         onSkip={skip}
       />
       <Button variant="secondary" size="sm" className="mt-4" onClick={enterFocusMode}>
-        <Maximize2 size={15} /> Focus Mode
+        <Maximize2 size={15} /> {t('timer.focusMode')}
       </Button>
     </div>
   )

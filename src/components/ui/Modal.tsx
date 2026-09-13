@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
+import { useI18n } from '@/i18n'
 
 interface ModalProps {
   open: boolean
@@ -15,6 +16,7 @@ interface ModalProps {
 }
 
 export function Modal({ open, title, description, onClose, children, className }: ModalProps) {
+  const { t } = useI18n()
   useEffect(() => {
     if (!open) return
     const onKey = (event: KeyboardEvent) => {
@@ -35,7 +37,7 @@ export function Modal({ open, title, description, onClose, children, className }
         >
           <button
             type="button"
-            aria-label="Close dialog"
+            aria-label={t('common.close')}
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
             onClick={onClose}
           />
@@ -59,7 +61,7 @@ export function Modal({ open, title, description, onClose, children, className }
                 </h2>
                 {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
               </div>
-              <Button variant="ghost" size="sm" aria-label="Close" onClick={onClose} className="h-9 w-9 px-0">
+              <Button variant="ghost" size="sm" aria-label={t('common.close')} onClick={onClose} className="h-9 w-9 px-0">
                 <X size={16} />
               </Button>
             </div>

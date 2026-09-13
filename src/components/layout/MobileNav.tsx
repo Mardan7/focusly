@@ -1,18 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import { BarChart3, CheckSquare, LayoutDashboard, Timer } from 'lucide-react'
 import { cn } from '@/utils/cn'
-
-const links = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/focus', label: 'Focus', icon: Timer },
-  { to: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { to: '/statistics', label: 'Stats', icon: BarChart3 },
-]
+import { useI18n } from '@/i18n'
 
 export function MobileNav() {
+  const { t } = useI18n()
+  const links = [
+    { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { to: '/focus', label: t('nav.focus'), icon: Timer },
+    { to: '/tasks', label: t('nav.tasks'), icon: CheckSquare },
+    { to: '/statistics', label: t('nav.stats'), icon: BarChart3 },
+  ]
   return (
     <nav
-      aria-label="Mobile"
+      aria-label={t('nav.mobile')}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/90 px-2 py-2 backdrop-blur-xl lg:hidden"
     >
       <div className="mx-auto grid max-w-lg grid-cols-4">

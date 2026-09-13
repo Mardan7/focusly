@@ -1,6 +1,7 @@
 import { Pause, Play, RotateCcw, SkipForward } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import type { TimerStatus } from '@/types/settings'
+import { useI18n } from '@/i18n'
 
 interface TimerControlsProps {
   status: TimerStatus
@@ -11,26 +12,27 @@ interface TimerControlsProps {
 }
 
 export function TimerControls({ status, onStart, onPause, onReset, onSkip }: TimerControlsProps) {
+  const { t } = useI18n()
   return (
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
       {status === 'running' ? (
         <Button variant="accent" size="lg" onClick={onPause}>
           <Pause size={16} />
-          Pause
+          {t('timer.pause')}
         </Button>
       ) : (
         <Button variant="accent" size="lg" onClick={onStart}>
           <Play size={16} />
-          {status === 'paused' ? 'Resume' : 'Start Focus'}
+          {status === 'paused' ? t('timer.resume') : t('timer.start')}
         </Button>
       )}
       <Button variant="secondary" size="lg" onClick={onReset}>
         <RotateCcw size={16} />
-        Reset
+        {t('timer.reset')}
       </Button>
       <Button variant="ghost" size="lg" onClick={onSkip}>
         <SkipForward size={16} />
-        Skip
+        {t('timer.skip')}
       </Button>
     </div>
   )

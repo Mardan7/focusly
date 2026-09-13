@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import type { Task } from '@/types/task'
 import { cn } from '@/utils/cn'
 import { formatShortDate } from '@/utils/date'
+import { useI18n } from '@/i18n'
 
 interface TaskCardProps {
   task: Task
@@ -23,6 +24,7 @@ const priorityTone = {
 
 export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCardProps) {
   const [menu, setMenu] = useState(false)
+  const { language, t } = useI18n()
 
   return (
     <motion.article
@@ -33,7 +35,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCard
     >
       <button
         type="button"
-        aria-label={task.completed ? `Mark ${task.title} as active` : `Complete ${task.title}`}
+        aria-label={task.completed ? t('tasks.reopen', { title: task.title }) : t('tasks.complete', { title: task.title })}
         onClick={() => onToggle(task.id)}
         className={cn(
           'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors',
@@ -51,17 +53,17 @@ export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCard
               {task.title}
             </h3>
             <p className="mt-1 text-xs text-muted">
-              {task.category} · {task.completedPomodoros}/{task.estimatedPomodoros} Pomodoros
-              {task.dueDate ? ` · ${formatShortDate(task.dueDate)}` : ''}
+              {t(`category.${task.category}`)} · {t('tasks.completedPomodoros', { completed: task.completedPomodoros, estimated: task.estimatedPomodoros })}
+              {task.dueDate ? ` · ${formatShortDate(task.dueDate, language)}` : ''}
             </p>
           </div>
           <div className="relative flex items-center gap-2">
-            <Badge tone={priorityTone[task.priority]}>{task.priority}</Badge>
+            <Badge tone={priorityTone[task.priority]}>{t(`priority.${task.priority}`)}</Badge>
             <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 px-0"
-              aria-label="Task actions"
+              aria-label={t('tasks.actions')}
               onClick={() => setMenu((open) => !open)}
             >
               <MoreHorizontal size={16} />
@@ -77,7 +79,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCard
                       setMenu(false)
                     }}
                   >
-                    Focus
+                    {t('tasks.focus')}
                   </button>
                 ) : null}
                 <button
@@ -88,7 +90,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCard
                     setMenu(false)
                   }}
                 >
-                  Edit
+                  {t('tasks.edit')}
                 </button>
                 <button
                   type="button"
@@ -98,7 +100,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete, onFocus }: TaskCard
                     setMenu(false)
                   }}
                 >
-                  Delete
+                  {t('tasks.delete')}
                 </button>
               </div>
             ) : null}

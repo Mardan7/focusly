@@ -3,6 +3,9 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Task, TaskCategory, TaskPriority } from '@/types/task'
 import { sanitizeTasks } from '@/utils/guards'
 import { safeStorage } from '@/utils/storage'
+import { useLanguageStore } from './useLanguageStore'
+import { useToastStore } from './useToastStore'
+import { translate } from '@/i18n/core'
 
 interface TaskState {
   tasks: Task[]
@@ -39,6 +42,7 @@ export const useTaskStore = create<TaskState>()(
           dueDate: input.dueDate,
         }
         set({ tasks: [task, ...get().tasks] })
+        useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.created') })
         return task
       },
       updateTask: (id, patch) => {
@@ -54,22 +58,27 @@ export const useTaskStore = create<TaskState>()(
               : task,
           ),
         })
+        useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.updated') })
       },
       deleteTask: (id) => {
         set({ tasks: get().tasks.filter((task) => task.id !== id) })
+        useToastStore.getState().push({ kind: 'info', title: translate(useLanguageStore.getState().language, 'tasks.deleted') })
       },
       toggleTask: (id) => {
+        const task = get().tasks.find((item) => item.id === id)
+        const completed = task ? !task.completed : false
         set({
           tasks: get().tasks.map((task) => {
             if (task.id !== id) return task
-            const completed = !task.completed
-            return {
+            const next = {
               ...task,
               completed,
               completedAt: completed ? new Date().toISOString() : null,
             }
+            return next
           }),
         })
+        if (completed) useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.completedToast') })
       },
       incrementPomodoro: (id) => {
         set({

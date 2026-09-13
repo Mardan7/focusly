@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/Select'
 import { useTaskStore } from '@/store/useTaskStore'
 import { useUIStore } from '@/store/useUIStore'
 import { TASK_CATEGORIES, TASK_PRIORITIES, type TaskCategory, type TaskPriority } from '@/types/task'
+import { useI18n } from '@/i18n'
 
 const blank = { title: '', description: '', category: 'Coding' as TaskCategory, priority: 'Medium' as TaskPriority, estimatedPomodoros: 1, dueDate: '' }
 
@@ -17,6 +18,7 @@ export function TaskModal() {
   const addTask = useTaskStore((state) => state.addTask)
   const updateTask = useTaskStore((state) => state.updateTask)
   const task = tasks.find((item) => item.id === editingId)
+  const { t } = useI18n()
   const [form, setForm] = useState(blank)
 
   useEffect(() => {
@@ -33,19 +35,19 @@ export function TaskModal() {
   }
 
   return (
-    <Modal open={open} onClose={close} title={editingId ? 'Edit task' : 'New task'} description="Keep the next meaningful step visible.">
+    <Modal open={open} onClose={close} title={editingId ? t('modal.editTask') : t('modal.newTask')} description={t('modal.description')}>
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Title"><TextInput autoFocus required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="What needs your focus?" /></Field>
-        <Field label="Description"><TextArea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Optional context" /></Field>
+        <Field label={t('modal.title')}><TextInput autoFocus required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder={t('modal.titlePlaceholder')} /></Field>
+        <Field label={t('modal.taskDescription')}><TextArea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder={t('modal.descriptionPlaceholder')} /></Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Category"><Select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as TaskCategory })}>{TASK_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</Select></Field>
-          <Field label="Priority"><Select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as TaskPriority })}>{TASK_PRIORITIES.map((item) => <option key={item}>{item}</option>)}</Select></Field>
+          <Field label={t('modal.category')}><Select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as TaskCategory })}>{TASK_CATEGORIES.map((item) => <option key={item} value={item}>{t(`category.${item}`)}</option>)}</Select></Field>
+          <Field label={t('modal.priority')}><Select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as TaskPriority })}>{TASK_PRIORITIES.map((item) => <option key={item} value={item}>{t(`priority.${item}`)}</option>)}</Select></Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Pomodoros"><TextInput type="number" min={1} max={20} value={form.estimatedPomodoros} onChange={(event) => setForm({ ...form, estimatedPomodoros: Number(event.target.value) })} /></Field>
-          <Field label="Due date"><TextInput type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} /></Field>
+          <Field label={t('modal.pomodoros')}><TextInput type="number" min={1} max={20} value={form.estimatedPomodoros} onChange={(event) => setForm({ ...form, estimatedPomodoros: Number(event.target.value) })} /></Field>
+          <Field label={t('modal.dueDate')}><TextInput type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} /></Field>
         </div>
-        <div className="flex justify-end gap-2 pt-2"><Button variant="ghost" onClick={close}>Cancel</Button><Button variant="accent" type="submit">{editingId ? 'Save changes' : 'Create task'}</Button></div>
+        <div className="flex justify-end gap-2 pt-2"><Button variant="ghost" onClick={close}>{t('modal.cancel')}</Button><Button variant="accent" type="submit">{editingId ? t('modal.save') : t('modal.create')}</Button></div>
       </form>
     </Modal>
   )

@@ -1,4 +1,6 @@
 const DAY = 24 * 60 * 60 * 1000
+import type { Language } from '@/store/useLanguageStore'
+import { locales } from '@/i18n/core'
 
 export function startOfDay(date: Date): Date {
   const next = new Date(date)
@@ -18,16 +20,16 @@ export function addDays(date: Date, amount: number): Date {
   return new Date(date.getTime() + amount * DAY)
 }
 
-export function formatLongDate(date: Date = new Date()): string {
-  return date.toLocaleDateString(undefined, {
+export function formatLongDate(date: Date = new Date(), language: Language = 'en'): string {
+  return date.toLocaleDateString(locales[language], {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   })
 }
 
-export function formatShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+export function formatShortDate(iso: string, language: Language = 'en'): string {
+  return new Date(iso).toLocaleDateString(locales[language], {
     month: 'short',
     day: 'numeric',
   })
@@ -39,8 +41,8 @@ export function greetingForHour(hour: number = new Date().getHours()): string {
   return 'Good evening'
 }
 
-export function weekdayLabels(): string[] {
-  const formatter = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
+export function weekdayLabels(language: Language = 'en'): string[] {
+  const formatter = new Intl.DateTimeFormat(locales[language], { weekday: 'short' })
   const monday = startOfDay(new Date())
   const day = monday.getDay()
   const diff = day === 0 ? -6 : 1 - day

@@ -10,6 +10,8 @@ import { useSettingsStore } from './useSettingsStore'
 import { useTaskStore } from './useTaskStore'
 import { useToastStore } from './useToastStore'
 import { useUIStore } from './useUIStore'
+import { useLanguageStore } from './useLanguageStore'
+import { translate } from '@/i18n/core'
 
 interface TimerState {
   mode: TimerMode
@@ -55,15 +57,17 @@ function finishCurrent(get: () => TimerState, set: (partial: Partial<TimerState>
       void playChime()
     }
     if (settings.desktopNotifications) {
-      const title = mode === 'focus' ? 'Focus session complete' : 'Break complete'
-      const body = mode === 'focus' ? 'Time for a recharge.' : 'Ready when you are.'
+      const language = useLanguageStore.getState().language
+      const title = mode === 'focus' ? translate(language, 'timer.focusComplete') : translate(language, 'timer.breakComplete')
+      const body = mode === 'focus' ? translate(language, 'timer.timeForRecharge') : translate(language, 'timer.breakComplete')
       notifyDesktop(title, body)
     }
     if (mode === 'focus') {
+      const language = useLanguageStore.getState().language
       useToastStore.getState().push({
         kind: 'success',
-        title: 'Focus session completed',
-        description: 'Logged to your productivity timeline.',
+        title: translate(language, 'toast.sessionCompleted'),
+        description: translate(language, 'toast.sessionLogged'),
       })
       useUIStore.getState().triggerCelebration()
       useUIStore.getState().triggerFocusCompletion(activeTaskId, Math.round(planned / 60000))

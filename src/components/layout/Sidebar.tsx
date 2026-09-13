@@ -3,21 +3,23 @@ import { BarChart3, LayoutDashboard, Settings, Timer, CheckSquare } from 'lucide
 import { Logo } from '@/components/layout/Logo'
 import { ProfileCard } from '@/components/layout/ProfileCard'
 import { cn } from '@/utils/cn'
-
-const links = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/focus', label: 'Focus', icon: Timer },
-  { to: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { to: '/statistics', label: 'Statistics', icon: BarChart3 },
-]
+import { translate } from '@/i18n/core'
+import { useLanguageStore } from '@/store/useLanguageStore'
 
 export function Sidebar() {
+  const language = useLanguageStore((state) => state.language)
+  const links = [
+    { to: '/', label: translate(language, 'nav.dashboard'), icon: LayoutDashboard },
+    { to: '/focus', label: translate(language, 'nav.focus'), icon: Timer },
+    { to: '/tasks', label: translate(language, 'nav.tasks'), icon: CheckSquare },
+    { to: '/statistics', label: translate(language, 'nav.statistics'), icon: BarChart3 },
+  ]
   return (
-    <aside className="hidden h-screen w-[248px] shrink-0 flex-col border-r border-border bg-surface/80 px-4 py-5 lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 self-start flex-col border-r border-border bg-surface/80 px-4 py-5 lg:flex">
       <div className="px-2 pb-8">
         <Logo />
       </div>
-      <nav className="flex flex-1 flex-col gap-1" aria-label="Primary">
+      <nav className="flex flex-1 flex-col gap-1" aria-label={translate(language, 'nav.primary')}>
         {links.map((link) => (
           <NavLink
             key={link.to}
@@ -52,7 +54,7 @@ export function Sidebar() {
           {({ isActive }) => (
             <>
               <Settings size={18} className={isActive ? 'text-accent' : ''} />
-              Settings
+              {translate(language, 'nav.settings')}
             </>
           )}
         </NavLink>

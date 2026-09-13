@@ -66,6 +66,7 @@ function finishCurrent(get: () => TimerState, set: (partial: Partial<TimerState>
         description: 'Logged to your productivity timeline.',
       })
       useUIStore.getState().triggerCelebration()
+      useUIStore.getState().triggerFocusCompletion(activeTaskId, Math.round(planned / 60000))
     }
   }
 
@@ -117,6 +118,10 @@ export const useTimerStore = create<TimerState>()(
       start: () => {
         const current = get()
         const remaining = current.remainingMs > 0 ? current.remainingMs : durationMs(current.mode)
+        useUIStore.getState().clearFocusCompletion()
+        if (current.mode === 'focus' && useSettingsStore.getState().focusModeAutoEnter) {
+          useUIStore.getState().enterFocusMode()
+        }
         set({
           status: 'running',
           remainingMs: remaining,

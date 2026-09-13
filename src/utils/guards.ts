@@ -55,6 +55,9 @@ export function sanitizeSettings(value: unknown): Settings {
     autoStartBreak: bool('autoStartBreak', DEFAULT_SETTINGS.autoStartBreak),
     soundEnabled: bool('soundEnabled', DEFAULT_SETTINGS.soundEnabled),
     desktopNotifications: bool('desktopNotifications', DEFAULT_SETTINGS.desktopNotifications),
+    focusModeAutoEnter: bool('focusModeAutoEnter', DEFAULT_SETTINGS.focusModeAutoEnter),
+    focusModeShowDndReminder: bool('focusModeShowDndReminder', DEFAULT_SETTINGS.focusModeShowDndReminder),
+    focusModeAutoFullscreen: bool('focusModeAutoFullscreen', DEFAULT_SETTINGS.focusModeAutoFullscreen),
     theme,
   }
 }

@@ -11,6 +11,9 @@ export interface Settings {
   autoStartBreak: boolean
   soundEnabled: boolean
   desktopNotifications: boolean
+  focusModeAutoEnter: boolean
+  focusModeShowDndReminder: boolean
+  focusModeAutoFullscreen: boolean
   theme: ThemePreference
 }
 
@@ -23,5 +26,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoStartBreak: true,
   soundEnabled: true,
   desktopNotifications: false,
+  focusModeAutoEnter: false,
+  focusModeShowDndReminder: true,
+  focusModeAutoFullscreen: false,
   theme: 'dark',
 }

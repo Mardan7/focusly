@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Maximize2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { Celebration } from '@/components/timer/Celebration'
 import { TimerControls } from '@/components/timer/TimerControls'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
@@ -28,6 +30,7 @@ export function PomodoroTimer() {
   const focusDuration = useSettingsStore((s) => s.focusDuration)
   const shortBreak = useSettingsStore((s) => s.shortBreak)
   const longBreak = useSettingsStore((s) => s.longBreak)
+  const enterFocusMode = useUIStore((s) => s.enterFocusMode)
 
   const [now, setNow] = useState(() => Date.now())
 
@@ -64,6 +67,9 @@ export function PomodoroTimer() {
         onReset={reset}
         onSkip={skip}
       />
+      <Button variant="secondary" size="sm" className="mt-4" onClick={enterFocusMode}>
+        <Maximize2 size={15} /> Focus Mode
+      </Button>
     </div>
   )
 }

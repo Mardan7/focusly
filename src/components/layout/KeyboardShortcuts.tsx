@@ -17,12 +17,29 @@ export function KeyboardShortcuts() {
   const skip = useTimerStore((state) => state.skip)
   const status = useTimerStore((state) => state.status)
   const openTaskModal = useUIStore((state) => state.openTaskModal)
+  const focusMode = useUIStore((state) => state.focusMode)
+  const enterFocusMode = useUIStore((state) => state.enterFocusMode)
+  const exitFocusMode = useUIStore((state) => state.exitFocusMode)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (isTypingTarget(event.target)) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
       const key = event.key.toLowerCase()
+      if (key === 'f') {
+        event.preventDefault()
+        if (focusMode) exitFocusMode()
+        else enterFocusMode()
+        return
+      }
+      if (key === 'escape') {
+        if (focusMode) {
+          event.preventDefault()
+          if (document.fullscreenElement) void document.exitFullscreen?.()
+          else exitFocusMode()
+        }
+        return
+      }
       if (event.code === 'Space' || key === ' ') {
         event.preventDefault()
         if (status === 'running') pause()
@@ -44,7 +61,7 @@ export function KeyboardShortcuts() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [location.pathname, openTaskModal, pause, reset, skip, start, status])
+  }, [enterFocusMode, exitFocusMode, focusMode, location.pathname, openTaskModal, pause, reset, skip, start, status])
 
   return null
 }

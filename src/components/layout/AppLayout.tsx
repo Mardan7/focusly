@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
+import { FocusMode } from '@/components/focus/FocusMode'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -23,6 +24,7 @@ export function AppLayout() {
       <MobileNav />
       <TaskModal />
       <ToastViewport />
+      <FocusMode />
     </div>
   )
 }

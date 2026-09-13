@@ -105,7 +105,7 @@ export const useTimerStore = create<TimerState>()(
       remainingMs: minutesToMs(25),
       endsAt: null,
       completedFocusInCycle: 0,
-      activeTaskId: 'task-portfolio',
+      activeTaskId: null,
       setActiveTask: (id) => set({ activeTaskId: id }),
       setMode: (mode) =>
         set({

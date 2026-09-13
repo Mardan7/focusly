@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { createSeedSessions } from '@/data/seed'
 import type { Session, SessionType } from '@/types/session'
 import { sanitizeSessions } from '@/utils/guards'
 import { safeStorage } from '@/utils/storage'
@@ -11,10 +10,14 @@ interface SessionState {
   clearSessions: () => void
 }
 
+function removeLegacyDemoSessions(sessions: Session[]): Session[] {
+  return sessions.filter((session) => !session.id.startsWith('seed-'))
+}
+
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
-      sessions: createSeedSessions(),
+      sessions: [],
       addSession: ({ taskId, type, duration }) => {
         const session: Session = {
           id: crypto.randomUUID(),
@@ -34,7 +37,7 @@ export const useSessionStore = create<SessionState>()(
         const data = persisted as { sessions?: unknown } | undefined
         return {
           ...current,
-          sessions: data ? sanitizeSessions(data.sessions) : current.sessions,
+          sessions: data ? removeLegacyDemoSessions(sanitizeSessions(data.sessions)) : current.sessions,
         }
       },
     },

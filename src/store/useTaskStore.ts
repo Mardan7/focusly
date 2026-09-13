@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { seedTasks } from '@/data/seed'
 import type { Task, TaskCategory, TaskPriority } from '@/types/task'
 import { sanitizeTasks } from '@/utils/guards'
 import { safeStorage } from '@/utils/storage'
@@ -15,6 +14,8 @@ interface TaskState {
   clearTasks: () => void
 }
 
+const legacyDemoTaskIds = new Set(['task-portfolio', 'task-typescript', 'task-auth', 'task-algo', 'task-linux', 'task-personal'])
+
 function createId(): string {
   return crypto.randomUUID()
 }
@@ -22,7 +23,7 @@ function createId(): string {
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
-      tasks: seedTasks,
+      tasks: [],
       addTask: (input) => {
         const task: Task = {
           id: createId(),
@@ -86,7 +87,7 @@ export const useTaskStore = create<TaskState>()(
         const data = persisted as { tasks?: unknown } | undefined
         return {
           ...current,
-          tasks: data ? sanitizeTasks(data.tasks) : current.tasks,
+          tasks: data ? sanitizeTasks(data.tasks).filter((task) => !legacyDemoTaskIds.has(task.id)) : current.tasks,
         }
       },
     },

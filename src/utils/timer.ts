@@ -18,8 +18,7 @@ export function formatDuration(totalMinutes: number): string {
   const safe = Math.max(0, Math.round(totalMinutes))
   const hours = Math.floor(safe / 60)
   const minutes = safe % 60
-  if (hours === 0) return `${minutes}m`
-  return `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`
+  return `${hours}h ${String(minutes).padStart(2, '0')}m`
 }
 
 export function remainingFromTimestamp(endsAt: number | null, fallbackMs: number, now = Date.now()): number {

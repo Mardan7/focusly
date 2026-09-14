@@ -6,6 +6,8 @@ import { safeStorage } from '@/utils/storage'
 import { useLanguageStore } from './useLanguageStore'
 import { useToastStore } from './useToastStore'
 import { translate } from '@/i18n/core'
+import { deleteRemoteTask, pushTask, updateRemoteTask } from '@/api/remote'
+import { useAuthStore } from './useAuthStore'
 
 interface TaskState {
   tasks: Task[]
@@ -42,6 +44,8 @@ export const useTaskStore = create<TaskState>()(
           dueDate: input.dueDate,
         }
         set({ tasks: [task, ...get().tasks] })
+        const token = useAuthStore.getState().token
+        if (token) void pushTask(token, task)
         useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.created') })
         return task
       },
@@ -58,10 +62,15 @@ export const useTaskStore = create<TaskState>()(
               : task,
           ),
         })
+        const token = useAuthStore.getState().token
+        const updated = get().tasks.find((item) => item.id === id)
+        if (token && updated) void updateRemoteTask(token, updated)
         useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.updated') })
       },
       deleteTask: (id) => {
         set({ tasks: get().tasks.filter((task) => task.id !== id) })
+        const token = useAuthStore.getState().token
+        if (token) void deleteRemoteTask(token, id)
         useToastStore.getState().push({ kind: 'info', title: translate(useLanguageStore.getState().language, 'tasks.deleted') })
       },
       toggleTask: (id) => {
@@ -79,6 +88,9 @@ export const useTaskStore = create<TaskState>()(
           }),
         })
         if (completed) useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.completedToast') })
+        const token = useAuthStore.getState().token
+        const updated = get().tasks.find((item) => item.id === id)
+        if (token && updated) void updateRemoteTask(token, updated)
       },
       incrementPomodoro: (id) => {
         set({
@@ -86,6 +98,9 @@ export const useTaskStore = create<TaskState>()(
             task.id === id ? { ...task, completedPomodoros: task.completedPomodoros + 1 } : task,
           ),
         })
+        const token = useAuthStore.getState().token
+        const updated = get().tasks.find((item) => item.id === id)
+        if (token && updated) void updateRemoteTask(token, updated)
       },
       clearTasks: () => set({ tasks: [] }),
     }),

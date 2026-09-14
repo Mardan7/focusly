@@ -1,32 +1,62 @@
-# React + TypeScript + Vite
+# FOCUSLY
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+FOCUSLY is a local-first productivity workspace with Pomodoro focus sessions, tasks, statistics, Focus Mode, fullscreen mode, multilingual UI, and account synchronization.
 
-Currently, two official plugins are available:
+## Frontend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+npm install
+Copy-Item .env.example .env.local
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`VITE_API_URL` points to the FastAPI service. It defaults to `http://localhost:8000` when no `.env.local` is present.
+
+## Backend
+
+Requirements: Python 3.12+ and PostgreSQL for production. SQLite is used automatically when `DATABASE_URL` is not configured, which is useful for local smoke tests.
+
+```powershell
+cd backend
+Copy-Item .env.example .env
+C:/path/to/python -m pip install -r requirements.txt
+C:/path/to/python -m uvicorn app.main:app --reload
+```
+
+Create a PostgreSQL database and set these values in `backend/.env`:
+
+- `DATABASE_URL=postgresql+psycopg://user:password@host:5432/focusly`
+- `JWT_SECRET_KEY` to a long random secret
+- `JWT_ALGORITHM=HS256`
+- `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `CORS_ORIGINS` as a comma-separated list of allowed frontend origins
+
+The current backend creates tables on startup. For a production deployment, run a migration tool such as Alembic before switching schemas or deploying changes.
+
+## API
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
+- `GET/POST/PUT/DELETE /tasks`
+- `GET/POST /sessions`
+- `GET/PUT /settings`
+- `GET /stats`
+- `GET /health`
+
+All user data endpoints require a JWT bearer token. Ownership is enforced from the authenticated token, never from a client-supplied `user_id`.
+
+## Data migration
+
+Anonymous local data is not silently deleted. Before the first account login, FOCUSLY keeps an anonymous snapshot of the existing local task/session/settings/language keys. Account data is loaded from the backend. Logging out restores the anonymous snapshot; logging back in hydrates the authenticated account again.
+
+Passwords are never stored in localStorage or returned by the API. The frontend stores only the JWT and basic user profile required to restore the session.
+
+## Checks
+
+```powershell
+npm run build
+npm run lint
+```
+
+Backend smoke checks cover registration, login, JWT ownership isolation, task creation, session recording, statistics, and a new user's zero state.

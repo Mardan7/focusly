@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom'
 import { Logo } from '@/components/layout/Logo'
 import { PROFILE } from '@/data/seed'
 import { useI18n } from '@/i18n'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export function Header() {
   const location = useLocation()
   const { t } = useI18n()
+  const user = useAuthStore((state) => state.user)
   const titles: Record<string, string> = {
     '/': t('nav.dashboard'), '/focus': t('nav.focus'), '/tasks': t('nav.tasks'), '/statistics': t('nav.statistics'), '/settings': t('nav.settings'),
   }
@@ -26,7 +28,7 @@ export function Header() {
           aria-hidden="true"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent"
         >
-          {PROFILE.initials}
+          {(user?.name ?? PROFILE.name).slice(0, 2).toUpperCase()}
         </div>
       </div>
     </header>

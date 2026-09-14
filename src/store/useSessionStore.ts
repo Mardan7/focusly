@@ -3,6 +3,8 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Session, SessionType } from '@/types/session'
 import { sanitizeSessions } from '@/utils/guards'
 import { safeStorage } from '@/utils/storage'
+import { pushSession } from '@/api/remote'
+import { useAuthStore } from './useAuthStore'
 
 interface SessionState {
   sessions: Session[]
@@ -27,6 +29,8 @@ export const useSessionStore = create<SessionState>()(
           completedAt: new Date().toISOString(),
         }
         set({ sessions: [...get().sessions, session] })
+        const token = useAuthStore.getState().token
+        if (token) void pushSession(token, session)
       },
       clearSessions: () => set({ sessions: [] }),
     }),

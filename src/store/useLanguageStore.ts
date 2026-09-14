@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { safeStorage } from '@/utils/storage'
+import { pushSettings } from '@/api/remote'
+import { useAuthStore } from './useAuthStore'
+import { useSettingsStore } from './useSettingsStore'
 
 export type Language = 'en' | 'ru' | 'kk'
 
@@ -13,7 +16,14 @@ export const useLanguageStore = create<LanguageState>()(
   persist(
     (set) => ({
       language: 'en',
-      setLanguage: (language) => set({ language }),
+      setLanguage: (language) => {
+        set({ language })
+        const token = useAuthStore.getState().token
+        if (token) {
+          const settings = useSettingsStore.getState()
+          void pushSettings(token, { language, theme: settings.theme, soundEnabled: settings.soundEnabled, focusModeAutoEnter: settings.focusModeAutoEnter, focusModeShowDndReminder: settings.focusModeShowDndReminder, focusModeAutoFullscreen: settings.focusModeAutoFullscreen })
+        }
+      },
     }),
     {
       name: 'focusly-language',

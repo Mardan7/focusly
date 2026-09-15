@@ -30,8 +30,6 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
 }
 
 export function apiErrorMessage(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
-  if (error instanceof ApiError) {
-    return fallback
-  }
+  if (error instanceof ApiError && error.message) return error.message
   return fallback
 }

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { apiRequest } from '@/api/client'
+import { ApiError, apiRequest } from '@/api/client'
+import { resetAccountData, restoreAnonymousData } from '@/api/sync'
 import type { ApiUser, AuthResponse } from '@/api/types'
 import { safeStorage } from '@/utils/storage'
 
@@ -17,6 +18,7 @@ interface AuthState {
 }
 
 function setAuth(response: AuthResponse, set: (state: Partial<AuthState>) => void): ApiUser {
+  resetAccountData()
   set({ token: response.access_token, user: response.user, error: null })
   return response.user
 }
@@ -58,16 +60,25 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true })
         try {
           const user = await apiRequest<ApiUser>('/auth/me', {}, token)
+          if (get().token !== token) return null
           set({ user, error: null })
           return user
-        } catch {
-          set({ token: null, user: null })
-          return null
+        } catch (error) {
+          if (get().token !== token) return null
+          if (error instanceof ApiError && error.status === 401) {
+            get().logout()
+            return null
+          }
+          set({ error: error instanceof Error ? error.message : 'Unable to load account' })
+          return get().user
         } finally {
           set({ loading: false })
         }
       },
-      logout: () => set({ token: null, user: null, error: null }),
+      logout: () => {
+        set({ token: null, user: null, error: null })
+        restoreAnonymousData()
+      },
       clearError: () => set({ error: null }),
     }),
     {

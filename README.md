@@ -31,6 +31,12 @@ Create a PostgreSQL database and set these values in `backend/.env`:
 - `ACCESS_TOKEN_EXPIRE_MINUTES`
 - `CORS_ORIGINS` as a comma-separated list of allowed frontend origins
 
+PostgreSQL deployments require a unique `JWT_SECRET_KEY` of at least 32 characters; placeholder secrets are rejected. Without a configured key, local SQLite runs use a random key and require a new login after a server restart.
+
+Timer durations, automatic break/focus preferences, and desktop notification preferences are saved per account in the current browser. Theme, language, sound, and Focus Mode preferences sync through the API.
+
+For Vercel, configure `VITE_API_URL` with the HTTPS backend URL before building. The backend's `CORS_ORIGINS` must include the exact Vercel frontend origin. `vercel.json` handles frontend routes only; run the FastAPI service separately. An unset API URL falls back to localhost for development.
+
 The current backend creates tables on startup. For a production deployment, run a migration tool such as Alembic before switching schemas or deploying changes.
 
 ## API
@@ -57,6 +63,14 @@ Passwords are never stored in localStorage or returned by the API. The frontend 
 ```powershell
 npm run build
 npm run lint
+npm test
 ```
 
 Backend smoke checks cover registration, login, JWT ownership isolation, task creation, session recording, statistics, and a new user's zero state.
+
+Run the backend regression tests against a temporary SQLite database:
+
+```powershell
+cd backend
+python -m unittest discover -s tests -v
+```

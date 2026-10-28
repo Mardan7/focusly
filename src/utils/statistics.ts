@@ -1,6 +1,6 @@
 import type { Session } from '@/types/session'
 import type { Task, TaskCategory } from '@/types/task'
-import { daysBack, startOfWeek, toDayKey } from '@/utils/date'
+import { addDays, daysBack, startOfWeek, toDayKey } from '@/utils/date'
 
 export function focusSessions(sessions: Session[]): Session[] {
   return sessions.filter((session) => session.type === 'focus')
@@ -14,15 +14,19 @@ export function sessionsInRange(sessions: Session[], days: number, now = new Dat
   const start = daysBack(days, now)[0]
   if (!start) return []
   const startMs = start.getTime()
-  return focusSessions(sessions).filter((session) => new Date(session.completedAt).getTime() >= startMs)
+  return focusSessions(sessions).filter((session) => {
+    const time = new Date(session.completedAt).getTime()
+    return time >= startMs && time <= now.getTime()
+  })
 }
 
 export function weeklyFocusMinutes(sessions: Session[], now = new Date()): number[] {
   const start = startOfWeek(now)
   const buckets = Array.from({ length: 7 }, () => 0)
+  const keys = buckets.map((_, index) => toDayKey(addDays(start, index)))
   for (const session of focusSessions(sessions)) {
     const completed = new Date(session.completedAt)
-    const diff = Math.floor((completed.getTime() - start.getTime()) / (24 * 60 * 60 * 1000))
+    const diff = keys.indexOf(toDayKey(completed))
     if (diff >= 0 && diff < 7) {
       buckets[diff] += session.duration / 60
     }
@@ -88,8 +92,7 @@ export function computeStreak(sessions: Session[], now = new Date()): { current:
   for (let i = 1; i < sorted.length; i += 1) {
     const prev = new Date(`${sorted[i - 1]}T00:00:00`)
     const next = new Date(`${sorted[i]}T00:00:00`)
-    const diff = (next.getTime() - prev.getTime()) / (24 * 60 * 60 * 1000)
-    if (diff === 1) {
+    if (toDayKey(addDays(prev, 1)) === toDayKey(next)) {
       run += 1
       best = Math.max(best, run)
     } else {

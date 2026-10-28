@@ -5,14 +5,14 @@ import { Celebration } from '@/components/timer/Celebration'
 import { TimerControls } from '@/components/timer/TimerControls'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerProgress } from '@/components/timer/TimerProgress'
-import { useSettingsStore } from '@/store/useSettingsStore'
 import { useTimerStore } from '@/store/useTimerStore'
 import { useUIStore } from '@/store/useUIStore'
-import { minutesToMs, remainingFromTimestamp, formatClock } from '@/utils/timer'
+import { remainingFromTimestamp, formatClock } from '@/utils/timer'
 import { useI18n } from '@/i18n'
 
 export function PomodoroTimer() {
   const { t } = useI18n()
+  const total = useTimerStore((state) => state.sessionDurationMs)
   const mode = useTimerStore((s) => s.mode)
   const status = useTimerStore((s) => s.status)
   const endsAt = useTimerStore((s) => s.endsAt)
@@ -23,9 +23,6 @@ export function PomodoroTimer() {
   const skip = useTimerStore((s) => s.skip)
   const setMode = useTimerStore((s) => s.setMode)
   const celebration = useUIStore((s) => s.celebration)
-  const focusDuration = useSettingsStore((s) => s.focusDuration)
-  const shortBreak = useSettingsStore((s) => s.shortBreak)
-  const longBreak = useSettingsStore((s) => s.longBreak)
   const enterFocusMode = useUIStore((s) => s.enterFocusMode)
 
   const [now, setNow] = useState(() => Date.now())
@@ -37,8 +34,6 @@ export function PomodoroTimer() {
   }, [status])
 
   const remaining = remainingFromTimestamp(status === 'running' ? endsAt : null, remainingMs, now)
-  const total =
-    mode === 'focus' ? minutesToMs(focusDuration) : mode === 'shortBreak' ? minutesToMs(shortBreak) : minutesToMs(longBreak)
   const progress = 1 - remaining / total
 
   return (

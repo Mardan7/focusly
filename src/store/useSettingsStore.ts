@@ -1,3 +1,4 @@
+import { saveLocalPreferences } from '@/api/localPreferences'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_SETTINGS, type Settings, type ThemePreference } from '@/types/settings'
@@ -18,11 +19,15 @@ export const useSettingsStore = create<SettingsState>()(
       ...DEFAULT_SETTINGS,
       updateSettings: (patch) => {
         set((state) => sanitizeSettings({ ...state, ...patch }))
+        const user = useAuthStore.getState().user
+        if (user) saveLocalPreferences(user.id, get())
         const token = useAuthStore.getState().token
         if (token) void pushSettings(token, { language: useLanguageStore.getState().language, theme: get().theme, soundEnabled: get().soundEnabled, focusModeAutoEnter: get().focusModeAutoEnter, focusModeShowDndReminder: get().focusModeShowDndReminder, focusModeAutoFullscreen: get().focusModeAutoFullscreen })
       },
       setTheme: (theme) => {
         set({ theme })
+        const user = useAuthStore.getState().user
+        if (user) saveLocalPreferences(user.id, get())
         const token = useAuthStore.getState().token
         if (token) void pushSettings(token, { language: useLanguageStore.getState().language, theme, soundEnabled: get().soundEnabled, focusModeAutoEnter: get().focusModeAutoEnter, focusModeShowDndReminder: get().focusModeShowDndReminder, focusModeAutoFullscreen: get().focusModeAutoFullscreen })
       },

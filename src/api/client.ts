@@ -14,7 +14,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
   const headers = new Headers(options.headers)
   headers.set('Content-Type', 'application/json')
   if (token) headers.set('Authorization', `Bearer ${token}`)
-  const response = await fetch(`${API_URL}${path}`, { ...options, headers })
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers, signal: options.signal ?? AbortSignal.timeout(30000) })
   if (!response.ok) {
     let message = 'Request failed'
     try {

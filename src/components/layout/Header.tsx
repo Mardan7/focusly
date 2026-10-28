@@ -1,22 +1,19 @@
-import { Settings } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { LogOut, Settings } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Logo } from '@/components/layout/Logo'
 import { PROFILE } from '@/data/seed'
 import { useI18n } from '@/i18n'
 import { useAuthStore } from '@/store/useAuthStore'
+import { Button } from '@/components/ui/Button'
 
 export function Header() {
-  const location = useLocation()
   const { t } = useI18n()
   const user = useAuthStore((state) => state.user)
-  const titles: Record<string, string> = {
-    '/': t('nav.dashboard'), '/focus': t('nav.focus'), '/tasks': t('nav.tasks'), '/statistics': t('nav.statistics'), '/settings': t('nav.settings'),
-  }
+  const logout = useAuthStore((state) => state.logout)
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 lg:hidden">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 lg:hidden">
       <Logo compact={false} />
-      <div className="flex items-center gap-2">
-        <p className="text-xs text-muted">{titles[location.pathname] ?? 'FOCUSLY'}</p>
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         <Link
           to="/settings"
           aria-label={t('nav.settings')}
@@ -24,12 +21,16 @@ export function Header() {
         >
           <Settings size={16} />
         </Link>
-        <div
-          aria-hidden="true"
+        <Button variant="ghost" size="sm" onClick={logout} className="shrink-0 px-2 text-danger">
+          <LogOut size={16} /> {t('auth.logout')}
+        </Button>
+        <Link
+          to="/profile"
+          aria-label={t('profile.title')}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent"
         >
           {(user?.name ?? PROFILE.name).slice(0, 2).toUpperCase()}
-        </div>
+        </Link>
       </div>
     </header>
   )

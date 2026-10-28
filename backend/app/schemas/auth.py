@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.schemas.dates import UtcDateTime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
@@ -7,9 +7,11 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
 
-    @field_validator("name")
+    @field_validator("name", mode="before")
     @classmethod
     def name_must_have_text(cls, value: str) -> str:
+        if not isinstance(value, str):
+            raise ValueError("Name must be text")
         value = value.strip()
         if not value:
             raise ValueError("Name is required")
@@ -22,6 +24,8 @@ class LoginRequest(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(min_length=2, max_length=120)
 
 
@@ -36,7 +40,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 class AuthResponse(BaseModel):

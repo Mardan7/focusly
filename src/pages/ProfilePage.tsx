@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useI18n } from '@/i18n'
-import { restoreAnonymousData } from '@/api'
 import { useAuthStore } from '@/store/useAuthStore'
 
 export function ProfilePage() {
@@ -12,7 +11,6 @@ export function ProfilePage() {
   const navigate = useNavigate()
   if (!user) return null
   const signOut = () => {
-    restoreAnonymousData()
     logout()
     navigate('/login', { replace: true })
   }

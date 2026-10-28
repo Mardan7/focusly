@@ -23,5 +23,5 @@ export function formatDuration(totalMinutes: number): string {
 
 export function remainingFromTimestamp(endsAt: number | null, fallbackMs: number, now = Date.now()): number {
   if (endsAt == null) return Math.max(0, fallbackMs)
-  return Math.max(0, endsAt - now)
+  return Math.max(0, Math.min(fallbackMs, endsAt - now))
 }

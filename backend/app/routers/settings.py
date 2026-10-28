@@ -26,7 +26,7 @@ def get_settings(user: CurrentUser, db: DbSession) -> UserSettings:
 @router.put("", response_model=SettingsResponse)
 def update_settings(payload: SettingsUpdate, user: CurrentUser, db: DbSession) -> UserSettings:
     settings = get_or_create(user.id, db)
-    for key, value in payload.model_dump().items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(settings, key, value)
     db.commit()
     db.refresh(settings)

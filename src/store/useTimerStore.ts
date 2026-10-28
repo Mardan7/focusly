@@ -17,6 +17,7 @@ interface TimerState {
   mode: TimerMode
   status: TimerStatus
   remainingMs: number
+  sessionDurationMs: number
   endsAt: number | null
   completedFocusInCycle: number
   activeTaskId: string | null
@@ -39,16 +40,19 @@ function durationMs(mode: TimerMode): number {
   return minutesToMs(settings.longBreak)
 }
 
-function finishCurrent(get: () => TimerState, set: (partial: Partial<TimerState>) => void, skipped: boolean) {
-  const { mode, activeTaskId, completedFocusInCycle } = get()
+function finishCurrent(get: () => TimerState, set: (partial: Partial<TimerState>) => void, skipped: boolean, completedAt = Date.now()) {
+  const { mode, completedFocusInCycle } = get()
+  const activeTaskId = useTaskStore.getState().tasks.some((task) => task.id === get().activeTaskId)
+    ? get().activeTaskId : null
   const settings = useSettingsStore.getState()
-  const planned = durationMs(mode)
+  const planned = get().sessionDurationMs
 
   if (!skipped) {
     useSessionStore.getState().addSession({
       taskId: mode === 'focus' ? activeTaskId : null,
       type: mode,
       duration: planned / 1000,
+      completedAt: new Date(completedAt).toISOString(),
     })
     if (mode === 'focus' && activeTaskId) {
       useTaskStore.getState().incrementPomodoro(activeTaskId)
@@ -97,6 +101,7 @@ function finishCurrent(get: () => TimerState, set: (partial: Partial<TimerState>
     mode: next,
     completedFocusInCycle: cycle,
     remainingMs: remaining,
+    sessionDurationMs: remaining,
     endsAt: autoStart ? Date.now() + remaining : null,
     status: autoStart ? 'running' : 'idle',
   })
@@ -108,6 +113,7 @@ export const useTimerStore = create<TimerState>()(
       mode: 'focus',
       status: 'idle',
       remainingMs: minutesToMs(25),
+      sessionDurationMs: minutesToMs(25),
       endsAt: null,
       completedFocusInCycle: 0,
       activeTaskId: null,
@@ -118,9 +124,11 @@ export const useTimerStore = create<TimerState>()(
           status: 'idle',
           endsAt: null,
           remainingMs: durationMs(mode),
+          sessionDurationMs: durationMs(mode),
         }),
       start: () => {
         const current = get()
+        if (current.status === 'running') return
         const remaining = current.remainingMs > 0 ? current.remainingMs : durationMs(current.mode)
         useUIStore.getState().clearFocusCompletion()
         if (current.mode === 'focus' && useSettingsStore.getState().focusModeAutoEnter) {
@@ -135,6 +143,10 @@ export const useTimerStore = create<TimerState>()(
       pause: () => {
         const current = get()
         if (current.status !== 'running') return
+        if (current.endsAt != null && Date.now() >= current.endsAt) {
+          get().completeIfDue()
+          return
+        }
         set({
           status: 'paused',
           remainingMs: remainingFromTimestamp(current.endsAt, current.remainingMs),
@@ -147,13 +159,17 @@ export const useTimerStore = create<TimerState>()(
           status: 'idle',
           endsAt: null,
           remainingMs: durationMs(mode),
+          sessionDurationMs: durationMs(mode),
         })
       },
       skip: () => {
         if (completing) return
         completing = true
-        finishCurrent(get, set, true)
-        completing = false
+        try {
+          finishCurrent(get, set, true)
+        } finally {
+          completing = false
+        }
       },
       completeIfDue: () => {
         const current = get()
@@ -162,13 +178,16 @@ export const useTimerStore = create<TimerState>()(
         if (completing) return
         completing = true
         set({ status: 'idle', remainingMs: 0, endsAt: null })
-        finishCurrent(get, set, false)
-        completing = false
+        try {
+          finishCurrent(get, set, false, current.endsAt)
+        } finally {
+          completing = false
+        }
       },
       applyDurations: () => {
         const current = get()
         if (current.status !== 'idle') return
-        set({ remainingMs: durationMs(current.mode) })
+        set({ remainingMs: durationMs(current.mode), sessionDurationMs: durationMs(current.mode) })
       },
     }),
     {
@@ -178,6 +197,7 @@ export const useTimerStore = create<TimerState>()(
         mode: state.mode,
         status: state.status,
         remainingMs: state.remainingMs,
+        sessionDurationMs: state.sessionDurationMs,
         endsAt: state.endsAt,
         completedFocusInCycle: state.completedFocusInCycle,
         activeTaskId: state.activeTaskId,

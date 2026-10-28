@@ -21,9 +21,9 @@ def register(payload: RegisterRequest, db: DbSession) -> AuthResponse:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered")
     user = User(name=payload.name, email=email, hashed_password=hash_password(payload.password))
     db.add(user)
-    db.flush()
-    db.add(UserSettings(user_id=user.id))
     try:
+        db.flush()
+        db.add(UserSettings(user_id=user.id))
         db.commit()
     except IntegrityError as error:
         db.rollback()

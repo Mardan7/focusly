@@ -6,7 +6,7 @@ import { useUIStore } from '@/store/useUIStore'
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable || !!target.closest('button, a, [role="dialog"]')
 }
 
 export function KeyboardShortcuts() {
@@ -24,6 +24,7 @@ export function KeyboardShortcuts() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (isTypingTarget(event.target)) return
+      if (event.repeat || useUIStore.getState().taskModalOpen) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
       const key = event.key.toLowerCase()
       if (key === 'f') {

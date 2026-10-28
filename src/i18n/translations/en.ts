@@ -1,4 +1,7 @@
 export const en = {
+  'settings.durationMinutes': 'Duration in minutes',
+  'settings.intervalHint': 'Number of focus sessions before a long break',
+  'sync.failed': 'Could not save to the server. Check your connection and try again.',
   'nav.dashboard': 'Dashboard',
   'nav.focus': 'Focus',
   'nav.tasks': 'Tasks',

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from uuid import uuid4
 
 from app.auth.deps import CurrentUser, DbSession
 from app.models import Task
@@ -22,9 +24,15 @@ def list_tasks(user: CurrentUser, db: DbSession) -> list[Task]:
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(payload: TaskCreate, user: CurrentUser, db: DbSession) -> Task:
-    task = Task(user_id=user.id, **payload.model_dump())
+    values = payload.model_dump()
+    values["id"] = values["id"] or str(uuid4())
+    task = Task(user_id=user.id, **values)
     db.add(task)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Task ID already exists") from error
     db.refresh(task)
     return task
 

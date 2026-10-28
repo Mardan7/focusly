@@ -1,6 +1,9 @@
 import type { en } from './en'
 
 export const kk: { [K in keyof typeof en]: string } = {
+  'settings.durationMinutes': 'Ұзақтығы минутпен',
+  'settings.intervalHint': 'Ұзақ үзіліске дейінгі фокус сессияларының саны',
+  'sync.failed': 'Серверге сақтау мүмкін болмады. Байланысты тексеріп, қайталап көріңіз.',
   'auth.welcome': 'Қайта қош келдіңіз', 'auth.createAccount': 'Аккаунт жасаңыз', 'auth.name': 'Аты', 'auth.email': 'Email', 'auth.password': 'Құпиясөз', 'auth.confirmPassword': 'Құпиясөзді растаңыз', 'auth.login': 'Кіру', 'auth.register': 'Аккаунт жасау', 'auth.noAccount': 'Аккаунтыңыз жоқ па?', 'auth.haveAccount': 'Аккаунтыңыз бар ма?', 'auth.signUp': 'Аккаунт жасау', 'auth.signIn': 'Кіру', 'auth.logout': 'Шығу', 'auth.invalidEmail': 'Дұрыс email енгізіңіз.', 'auth.passwordLength': 'Құпиясөз кемінде 8 таңбадан тұруы керек.', 'auth.passwordMismatch': 'Құпиясөздер сәйкес келмейді.', 'auth.nameRequired': 'Атыңызды енгізіңіз.', 'auth.error': 'Сұранысты орындау мүмкін болмады.', 'auth.loading': 'Аккаунтыңыз жүктелуде...', 'profile.title': 'Профиль', 'profile.accountCreated': 'Аккаунт жасалған', 'profile.edit': 'Профильді өзгерту', 'profile.changePassword': 'Құпиясөзді өзгерту', 'profile.email': 'Email',
   'focus.progress': '{count}% орындалды',
   'nav.dashboard': 'Басты бет', 'nav.focus': 'Фокус', 'nav.tasks': 'Тапсырмалар', 'nav.statistics': 'Статистика', 'nav.settings': 'Баптаулар', 'nav.stats': 'Статистика', 'nav.primary': 'Негізгі навигация', 'nav.mobile': 'Мобильді навигация', 'profile.role': 'Бағдарламалық инженерия студенті',

@@ -4,7 +4,6 @@ import { useLanguageStore } from '@/store/useLanguageStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { restoreAnonymousData } from '@/api'
 import { useI18n } from '@/i18n'
 
 export function ProfileCard() {
@@ -15,7 +14,6 @@ export function ProfileCard() {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const signOut = () => {
-    restoreAnonymousData()
     logout()
     navigate('/login', { replace: true })
   }

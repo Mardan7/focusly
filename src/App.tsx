@@ -1,14 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthGate } from '@/components/auth/AuthGate'
-import { KeyboardShortcuts } from '@/components/layout/KeyboardShortcuts'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
-import { TimerEngine } from '@/components/layout/TimerEngine'
-import { I18nProvider } from '@/i18n'
+import { I18nProvider } from '@/i18n/I18nProvider'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { FocusPage } from '@/pages/FocusPage'
 import { SettingsPage } from '@/pages/SettingsPage'
-import { StatisticsPage } from '@/pages/StatisticsPage'
+const StatisticsPage = lazy(() => import('@/pages/StatisticsPage').then((module) => ({ default: module.StatisticsPage })))
 import { TasksPage } from '@/pages/TasksPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
@@ -19,8 +18,6 @@ function App() {
     <BrowserRouter>
       <I18nProvider>
         <ThemeProvider>
-          <TimerEngine />
-          <KeyboardShortcuts />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -28,7 +25,7 @@ function App() {
               <Route index element={<DashboardPage />} />
               <Route path="focus" element={<FocusPage />} />
               <Route path="tasks" element={<TasksPage />} />
-              <Route path="statistics" element={<StatisticsPage />} />
+              <Route path="statistics" element={<Suspense fallback={<div role="status" aria-label="Loading" className="h-64 animate-pulse rounded-2xl bg-card" />}><StatisticsPage /></Suspense>} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

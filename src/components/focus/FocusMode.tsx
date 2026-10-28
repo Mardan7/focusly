@@ -6,11 +6,13 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { useTaskStore } from '@/store/useTaskStore'
 import { useTimerStore } from '@/store/useTimerStore'
 import { useUIStore } from '@/store/useUIStore'
-import { formatClock, minutesToMs, remainingFromTimestamp } from '@/utils/timer'
+import { formatClock, remainingFromTimestamp } from '@/utils/timer'
 import { useI18n } from '@/i18n'
+import { enterNativeFullscreen, exitNativeFullscreen, isNativeFullscreen } from '@/utils/fullscreen'
 
 export function FocusMode() {
   const { t } = useI18n()
+  const total = useTimerStore((state) => state.sessionDurationMs)
   const active = useUIStore((state) => state.focusMode)
   const exit = useUIStore((state) => state.exitFocusMode)
   const completion = useUIStore((state) => state.focusCompletion)
@@ -24,23 +26,42 @@ export function FocusMode() {
   const reset = useTimerStore((state) => state.reset)
   const activeTaskId = useTimerStore((state) => state.activeTaskId)
   const task = useTaskStore((state) => state.tasks.find((item) => item.id === activeTaskId))
-  const focusDuration = useSettingsStore((state) => state.focusDuration)
-  const shortBreak = useSettingsStore((state) => state.shortBreak)
-  const longBreak = useSettingsStore((state) => state.longBreak)
   const soundEnabled = useSettingsStore((state) => state.soundEnabled)
   const updateSettings = useSettingsStore((state) => state.updateSettings)
   const showReminder = useSettingsStore((state) => state.focusModeShowDndReminder)
   const autoFullscreen = useSettingsStore((state) => state.focusModeAutoFullscreen)
   const [now, setNow] = useState(() => Date.now())
   const [reminderDismissed, setReminderDismissed] = useState(false)
-  const [fullscreen, setFullscreen] = useState(() => document.fullscreenElement != null)
+  const [nativeFullscreen, setNativeFullscreen] = useState(isNativeFullscreen)
+  const [expanded, setExpanded] = useState(false)
+  const fullscreen = active && (nativeFullscreen || expanded)
   const [fullscreenControlsVisible, setFullscreenControlsVisible] = useState(true)
   const fullscreenControlsTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    if (!active || !autoFullscreen || document.fullscreenElement || !document.documentElement.requestFullscreen) return
-    void document.documentElement.requestFullscreen().catch(() => undefined)
+    if (!active || !autoFullscreen || isNativeFullscreen()) return
+    let cancelled = false
+    void enterNativeFullscreen().then((entered) => {
+      if (cancelled) {
+        if (entered) void exitNativeFullscreen()
+      } else if (!entered) setExpanded(true)
+    })
+    return () => { cancelled = true }
   }, [active, autoFullscreen])
+
+  useEffect(() => {
+    if (active) return
+    void exitNativeFullscreen().then(() => setExpanded(false))
+  }, [active])
+
+  useEffect(() => {
+    if (!active) return
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && expanded) setExpanded(false)
+    }
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [active, expanded])
 
   useEffect(() => {
     if (status !== 'running') return
@@ -50,12 +71,16 @@ export function FocusMode() {
 
   useEffect(() => {
     const onFullscreenChange = () => {
-      const isFullscreen = document.fullscreenElement != null
-      setFullscreen(isFullscreen)
+      const isFullscreen = isNativeFullscreen()
+      setNativeFullscreen(isFullscreen)
       if (isFullscreen) setFullscreenControlsVisible(true)
     }
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange)
+    }
   }, [])
 
   useEffect(() => {
@@ -68,23 +93,21 @@ export function FocusMode() {
 
   if (!active) return null
 
-  const total = mode === 'focus' ? minutesToMs(focusDuration) : mode === 'shortBreak' ? minutesToMs(shortBreak) : minutesToMs(longBreak)
   const remaining = remainingFromTimestamp(status === 'running' ? endsAt : null, remainingMs, now)
   const progress = Math.max(0, Math.min(1, 1 - remaining / total))
   const completionTask = completion?.taskId ? useTaskStore.getState().tasks.find((item) => item.id === completion.taskId) : task
 
   const toggleFullscreen = async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen?.()
-        return
-      }
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen()
-      }
-    } catch {
-      // Fullscreen can be unavailable or denied by the browser.
+    if (fullscreen) {
+      setExpanded(false)
+      await exitNativeFullscreen()
+      setNativeFullscreen(isNativeFullscreen())
+      return
     }
+    setFullscreenControlsVisible(true)
+    const entered = await enterNativeFullscreen()
+    if (useUIStore.getState().focusMode) setExpanded(!entered)
+    else await exitNativeFullscreen()
   }
 
   const revealFullscreenControls = () => {
@@ -109,13 +132,16 @@ export function FocusMode() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="fixed inset-0 z-[70] flex min-h-screen items-center justify-center overflow-hidden bg-[#08090a] text-text"
+        className="fixed inset-0 z-[70] flex min-h-screen items-center justify-center overflow-hidden bg-[#08090a] text-text [--text:#ffffff] [--muted:#a1a1aa] [--elevated:#18181b] [--bg:#08090a]"
         onPointerMove={revealFullscreenControls}
         onPointerDown={revealFullscreenControls}
         role="dialog"
         aria-modal="true"
         aria-label={t('focus.fullscreenTimer')}
       >
+        <Button variant="secondary" size="sm" className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))]" onClick={toggleFullscreen}>
+          <Minimize size={15} /> {t('focus.exitFullscreen')}
+        </Button>
         <div className="select-none text-[clamp(5rem,18vw,13rem)] font-semibold leading-none tracking-tight tabular-nums text-accent drop-shadow-[0_0_36px_rgb(0_255_198/0.18)]">
           {formatClock(remaining)}
         </div>
@@ -125,14 +151,11 @@ export function FocusMode() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              className="fixed bottom-8 left-1/2 flex -translate-x-1/2 gap-3"
+              className="fixed inset-x-4 bottom-[max(2rem,env(safe-area-inset-bottom))] flex flex-wrap justify-center gap-3"
             >
               <Button variant="accent" size="md" onClick={status === 'running' ? pause : start}>
                 {status === 'running' ? <Pause size={16} /> : <Play size={16} />}
                 {status === 'running' ? t('timer.pause') : t('timer.resume')}
-              </Button>
-              <Button variant="secondary" size="md" onClick={toggleFullscreen}>
-                <Minimize size={16} /> {t('focus.exitFullscreen')}
               </Button>
             </motion.div>
           ) : null}
@@ -148,7 +171,7 @@ export function FocusMode() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 overflow-y-auto bg-[#08090a]/95 px-4 py-6 text-text backdrop-blur-xl sm:px-8 sm:py-10"
+        className="fixed inset-0 z-50 overflow-y-auto bg-[#08090a]/95 px-4 py-6 text-text backdrop-blur-xl [--text:#ffffff] [--muted:#a1a1aa] [--elevated:#18181b] [--bg:#08090a] [--card:#101214] sm:px-8 sm:py-10"
         role="dialog"
         aria-modal="true"
         aria-label={t('timer.focusMode')}
@@ -199,8 +222,18 @@ export function FocusMode() {
             </AnimatePresence>
           </main>
 
+          <AnimatePresence>
+            {showReminder && !reminderDismissed ? (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="mx-auto mb-5 flex w-full max-w-md items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-3 text-sm shadow-2xl backdrop-blur-xl">
+                <BellOff size={17} className="shrink-0 text-accent" />
+                <span className="flex-1">{t('focus.dndReminder')}</span>
+                <button type="button" onClick={() => setReminderDismissed(true)} className="shrink-0 text-muted hover:text-text" aria-label={t('focus.dismissReminder')}>{t('common.dismiss')}</button>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
           <footer className="flex flex-col items-center justify-between gap-4 border-t border-border pt-5 text-xs text-muted sm:flex-row">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               <Button variant="ghost" size="sm" onClick={() => updateSettings({ soundEnabled: !soundEnabled })} aria-label={soundEnabled ? t('focus.muteSound') : t('focus.enableSound')}>
                 {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
                 {soundEnabled ? t('focus.soundOn') : t('focus.soundOff')}
@@ -213,15 +246,7 @@ export function FocusMode() {
             <span>{t('focus.shortcutHint')}</span>
           </footer>
 
-          <AnimatePresence>
-            {showReminder && !reminderDismissed ? (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="fixed bottom-5 left-1/2 z-[60] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-3 text-sm shadow-2xl backdrop-blur-xl">
-                <BellOff size={17} className="shrink-0 text-accent" />
-                <span className="flex-1">{t('focus.dndReminder')}</span>
-                <button type="button" onClick={() => setReminderDismissed(true)} className="shrink-0 text-muted hover:text-text" aria-label={t('focus.dismissReminder')}>{t('common.dismiss')}</button>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+
         </div>
       </motion.div>
     </AnimatePresence>

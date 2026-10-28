@@ -1,6 +1,9 @@
 import type { en } from './en'
 
 export const ru: { [K in keyof typeof en]: string } = {
+  'settings.durationMinutes': 'Длительность в минутах',
+  'settings.intervalHint': 'Количество фокус-сессий до длинного перерыва',
+  'sync.failed': 'Не удалось сохранить на сервере. Проверьте подключение и повторите попытку.',
   'auth.welcome': 'С возвращением', 'auth.createAccount': 'Создайте аккаунт', 'auth.name': 'Имя', 'auth.email': 'Email', 'auth.password': 'Пароль', 'auth.confirmPassword': 'Подтвердите пароль', 'auth.login': 'Войти', 'auth.register': 'Создать аккаунт', 'auth.noAccount': 'Нет аккаунта?', 'auth.haveAccount': 'Уже есть аккаунт?', 'auth.signUp': 'Создать аккаунт', 'auth.signIn': 'Войти', 'auth.logout': 'Выйти', 'auth.invalidEmail': 'Введите корректный email.', 'auth.passwordLength': 'Пароль должен содержать минимум 8 символов.', 'auth.passwordMismatch': 'Пароли не совпадают.', 'auth.nameRequired': 'Введите имя.', 'auth.error': 'Не удалось выполнить запрос.', 'auth.loading': 'Загружаем ваш аккаунт...', 'profile.title': 'Профиль', 'profile.accountCreated': 'Аккаунт создан', 'profile.edit': 'Изменить профиль', 'profile.changePassword': 'Изменить пароль', 'profile.email': 'Email',
   'focus.progress': '{count}% завершено',
   'nav.dashboard': 'Главная', 'nav.focus': 'Фокус', 'nav.tasks': 'Задачи', 'nav.statistics': 'Статистика', 'nav.settings': 'Настройки', 'nav.stats': 'Статистика', 'nav.primary': 'Основная навигация', 'nav.mobile': 'Мобильная навигация', 'profile.role': 'Студент программной инженерии',

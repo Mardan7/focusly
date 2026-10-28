@@ -1,3 +1,5 @@
+import { KeyboardShortcuts } from './KeyboardShortcuts'
+import { TimerEngine } from './TimerEngine'
 import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { FocusMode } from '@/components/focus/FocusMode'
@@ -10,6 +12,8 @@ import { ToastViewport } from '@/components/ui/Toast'
 export function AppLayout() {
   return (
     <div className="flex min-h-screen bg-transparent text-text">
+      <TimerEngine />
+      <KeyboardShortcuts />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />

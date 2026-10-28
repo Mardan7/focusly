@@ -31,3 +31,6 @@ dist/
 backend/.env
 backend/*.db
 *.db
+__pycache__/
+*.py[cod]
+.venv/

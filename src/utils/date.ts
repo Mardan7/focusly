@@ -1,4 +1,3 @@
-const DAY = 24 * 60 * 60 * 1000
 import type { Language } from '@/store/useLanguageStore'
 import { locales } from '@/i18n/core'
 
@@ -17,7 +16,9 @@ export function toDayKey(date: Date | string): string {
 }
 
 export function addDays(date: Date, amount: number): Date {
-  return new Date(date.getTime() + amount * DAY)
+  const next = new Date(date)
+  next.setDate(next.getDate() + amount)
+  return next
 }
 
 export function formatLongDate(date: Date = new Date(), language: Language = 'en'): string {

@@ -4,6 +4,12 @@ import { useLanguageStore } from '@/store/useLanguageStore'
 import { useSessionStore } from '@/store/useSessionStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useTaskStore } from '@/store/useTaskStore'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useTimerStore } from '@/store/useTimerStore'
+import { useUIStore } from '@/store/useUIStore'
+import { parseJson, safeStorage } from '@/utils/storage'
+import { sanitizeTasks, sanitizeSessions, sanitizeSettings } from '@/utils/guards'
+import { loadLocalPreferences } from './localPreferences'
 import { DEFAULT_SETTINGS } from '@/types/settings'
 import type { Task } from '@/types/task'
 import type { Session } from '@/types/session'
@@ -12,14 +18,16 @@ const backupKey = 'focusly-anonymous-backup'
 const dataKeys = ['focusly-tasks', 'focusly-sessions', 'focusly-settings', 'focusly-language']
 
 export function backupAnonymousData(): void {
-  if (localStorage.getItem(backupKey)) return
-  const values = Object.fromEntries(dataKeys.map((key) => [key, localStorage.getItem(key)]))
-  localStorage.setItem(backupKey, JSON.stringify(values))
+  if (safeStorage.getItem(backupKey)) return
+  const values = Object.fromEntries(dataKeys.map((key) => [key, safeStorage.getItem(key)]))
+  safeStorage.setItem(backupKey, JSON.stringify(values))
 }
 
 export function restoreAnonymousData(): void {
-  const backup = JSON.parse(localStorage.getItem(backupKey) ?? 'null') as Record<string, string | null> | null
+  resetAccountData()
+  const backup = parseJson<Record<string, string | null>>(safeStorage.getItem(backupKey))
   if (!backup) {
+    safeStorage.removeItem(backupKey)
     useTaskStore.setState({ tasks: [] })
     useSessionStore.setState({ sessions: [] })
     useSettingsStore.setState({ ...DEFAULT_SETTINGS })
@@ -28,17 +36,29 @@ export function restoreAnonymousData(): void {
   }
   for (const key of dataKeys) {
     const value = backup[key]
-    if (value == null) localStorage.removeItem(key)
-    else localStorage.setItem(key, value)
+    if (value == null) safeStorage.removeItem(key)
+    else safeStorage.setItem(key, value)
   }
-  const tasks = JSON.parse(backup['focusly-tasks'] ?? '{"state":{"tasks":[]}}') as { state?: { tasks?: Task[] } }
-  const sessions = JSON.parse(backup['focusly-sessions'] ?? '{"state":{"sessions":[]}}') as { state?: { sessions?: Session[] } }
-  const settings = JSON.parse(backup['focusly-settings'] ?? '{"state":{}}') as { state?: Partial<typeof DEFAULT_SETTINGS> }
-  const language = JSON.parse(backup['focusly-language'] ?? '{"state":{"language":"en"}}') as { state?: { language?: 'en' | 'ru' | 'kk' } }
-  useTaskStore.setState({ tasks: tasks.state?.tasks ?? [] })
-  useSessionStore.setState({ sessions: sessions.state?.sessions ?? [] })
-  useSettingsStore.setState({ ...DEFAULT_SETTINGS, ...settings.state })
-  useLanguageStore.setState({ language: language.state?.language ?? 'en' })
+  const tasks = parseJson<{ state?: { tasks?: Task[] } }>(backup['focusly-tasks'])
+  const sessions = parseJson<{ state?: { sessions?: Session[] } }>(backup['focusly-sessions'])
+  const settings = parseJson<{ state?: Partial<typeof DEFAULT_SETTINGS> }>(backup['focusly-settings'])
+  const language = parseJson<{ state?: { language?: string } }>(backup['focusly-language'])?.state?.language
+  useTaskStore.setState({ tasks: sanitizeTasks(tasks?.state?.tasks) })
+  useSessionStore.setState({ sessions: sanitizeSessions(sessions?.state?.sessions) })
+  useSettingsStore.setState(sanitizeSettings(settings?.state))
+  useLanguageStore.setState({ language: language === 'ru' || language === 'kk' ? language : 'en' })
+  safeStorage.removeItem(backupKey)
+  useTimerStore.getState().applyDurations()
+}
+
+export function resetAccountData(): void {
+  useTaskStore.setState({ tasks: [] })
+  useSessionStore.setState({ sessions: [] })
+  useSettingsStore.setState({ ...DEFAULT_SETTINGS })
+  useTimerStore.getState().setMode('focus')
+  useTimerStore.setState({ activeTaskId: null, completedFocusInCycle: 0 })
+  useUIStore.getState().exitFocusMode()
+  useUIStore.getState().closeTaskModal()
 }
 
 function mapTask(task: ApiTask): Task {
@@ -55,9 +75,11 @@ export async function hydrateRemoteData(token: string): Promise<void> {
     apiRequest<ApiSession[]>('/sessions', {}, token),
     apiRequest<ApiSettings>('/settings', {}, token),
   ])
+  if (useAuthStore.getState().token !== token) return
   useTaskStore.setState({ tasks: tasks.map(mapTask) })
-  useSessionStore.setState({ sessions: sessions.map(mapSession) })
-  useSettingsStore.setState({ focusDuration: DEFAULT_SETTINGS.focusDuration, shortBreak: DEFAULT_SETTINGS.shortBreak, longBreak: DEFAULT_SETTINGS.longBreak, longBreakInterval: DEFAULT_SETTINGS.longBreakInterval, autoStartFocus: DEFAULT_SETTINGS.autoStartFocus, autoStartBreak: DEFAULT_SETTINGS.autoStartBreak, soundEnabled: settings.sound_enabled, desktopNotifications: DEFAULT_SETTINGS.desktopNotifications, focusModeAutoEnter: settings.auto_focus_mode, focusModeShowDndReminder: settings.show_dnd_reminder, focusModeAutoFullscreen: settings.auto_fullscreen, theme: settings.theme })
+  useSessionStore.setState({ sessions: sessions.filter((session) => session.completed).map(mapSession) })
+  useSettingsStore.setState({ ...loadLocalPreferences(settings.user_id), soundEnabled: settings.sound_enabled, focusModeAutoEnter: settings.auto_focus_mode, focusModeShowDndReminder: settings.show_dnd_reminder, focusModeAutoFullscreen: settings.auto_fullscreen, theme: settings.theme })
   useLanguageStore.setState({ language: settings.language })
+  useTimerStore.getState().applyDurations()
 }
 

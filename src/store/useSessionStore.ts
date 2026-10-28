@@ -8,7 +8,7 @@ import { useAuthStore } from './useAuthStore'
 
 interface SessionState {
   sessions: Session[]
-  addSession: (input: { taskId: string | null; type: SessionType; duration: number }) => void
+  addSession: (input: { taskId: string | null; type: SessionType; duration: number; completedAt?: string }) => void
   clearSessions: () => void
 }
 
@@ -20,13 +20,13 @@ export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
       sessions: [],
-      addSession: ({ taskId, type, duration }) => {
+      addSession: ({ taskId, type, duration, completedAt }) => {
         const session: Session = {
           id: crypto.randomUUID(),
           taskId,
           type,
           duration,
-          completedAt: new Date().toISOString(),
+          completedAt: completedAt ?? new Date().toISOString(),
         }
         set({ sessions: [...get().sessions, session] })
         const token = useAuthStore.getState().token

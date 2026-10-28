@@ -11,11 +11,11 @@ import { useAuthStore } from './useAuthStore'
 
 interface TaskState {
   tasks: Task[]
-  addTask: (input: Omit<Task, 'id' | 'completed' | 'completedAt' | 'createdAt' | 'completedPomodoros'>) => Task
-  updateTask: (id: string, patch: Partial<Omit<Task, 'id' | 'createdAt'>>) => void
-  deleteTask: (id: string) => void
-  toggleTask: (id: string) => void
-  incrementPomodoro: (id: string) => void
+  addTask: (input: Omit<Task, 'id' | 'completed' | 'completedAt' | 'createdAt' | 'completedPomodoros'>) => Promise<Task | undefined>
+  updateTask: (id: string, patch: Partial<Omit<Task, 'id' | 'createdAt'>>) => Promise<boolean>
+  deleteTask: (id: string) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  incrementPomodoro: (id: string) => Promise<void>
   clearTasks: () => void
 }
 
@@ -29,7 +29,7 @@ export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
       tasks: [],
-      addTask: (input) => {
+      addTask: async (input) => {
         const task: Task = {
           id: createId(),
           title: input.title.trim(),
@@ -43,64 +43,36 @@ export const useTaskStore = create<TaskState>()(
           createdAt: new Date().toISOString(),
           dueDate: input.dueDate,
         }
-        set({ tasks: [task, ...get().tasks] })
         const token = useAuthStore.getState().token
-        if (token) void pushTask(token, task)
+        if (token && !(await pushTask(token, task))) return
+        set({ tasks: [task, ...get().tasks] })
         useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.created') })
         return task
       },
-      updateTask: (id, patch) => {
-        set({
-          tasks: get().tasks.map((task) =>
-            task.id === id
-              ? {
-                  ...task,
-                  ...patch,
-                  title: patch.title != null ? patch.title.trim() : task.title,
-                  description: patch.description != null ? patch.description.trim() : task.description,
-                }
-              : task,
-          ),
-        })
+      updateTask: async (id, patch) => {
+        const current = get().tasks.find((task) => task.id === id)
+        if (!current) return false
+        const updated = { ...current, ...patch, title: patch.title?.trim() ?? current.title, description: patch.description?.trim() ?? current.description }
         const token = useAuthStore.getState().token
-        const updated = get().tasks.find((item) => item.id === id)
-        if (token && updated) void updateRemoteTask(token, updated)
+        if (token && !(await updateRemoteTask(token, updated))) return false
+        set({ tasks: get().tasks.map((task) => task.id === id ? updated : task) })
         useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.updated') })
+        return true
       },
-      deleteTask: (id) => {
-        set({ tasks: get().tasks.filter((task) => task.id !== id) })
+      deleteTask: async (id) => {
         const token = useAuthStore.getState().token
-        if (token) void deleteRemoteTask(token, id)
+        if (token && !(await deleteRemoteTask(token, id))) return
+        set({ tasks: get().tasks.filter((task) => task.id !== id) })
         useToastStore.getState().push({ kind: 'info', title: translate(useLanguageStore.getState().language, 'tasks.deleted') })
       },
-      toggleTask: (id) => {
+      toggleTask: async (id) => {
         const task = get().tasks.find((item) => item.id === id)
-        const completed = task ? !task.completed : false
-        set({
-          tasks: get().tasks.map((task) => {
-            if (task.id !== id) return task
-            const next = {
-              ...task,
-              completed,
-              completedAt: completed ? new Date().toISOString() : null,
-            }
-            return next
-          }),
-        })
-        if (completed) useToastStore.getState().push({ kind: 'success', title: translate(useLanguageStore.getState().language, 'tasks.completedToast') })
-        const token = useAuthStore.getState().token
-        const updated = get().tasks.find((item) => item.id === id)
-        if (token && updated) void updateRemoteTask(token, updated)
+        if (!task) return
+        await get().updateTask(id, { completed: !task.completed, completedAt: !task.completed ? new Date().toISOString() : null })
       },
-      incrementPomodoro: (id) => {
-        set({
-          tasks: get().tasks.map((task) =>
-            task.id === id ? { ...task, completedPomodoros: task.completedPomodoros + 1 } : task,
-          ),
-        })
-        const token = useAuthStore.getState().token
-        const updated = get().tasks.find((item) => item.id === id)
-        if (token && updated) void updateRemoteTask(token, updated)
+      incrementPomodoro: async (id) => {
+        const task = get().tasks.find((item) => item.id === id)
+        if (task) await get().updateTask(id, { completedPomodoros: task.completedPomodoros + 1 })
       },
       clearTasks: () => set({ tasks: [] }),
     }),

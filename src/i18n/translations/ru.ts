@@ -1,6 +1,24 @@
 import type { en } from './en'
 
 export const ru: { [K in keyof typeof en]: string } = {
+  "profile.back": "Назад в профиль",
+  "profile.level": "Уровень {level}",
+  "profile.beginner": "Новичок",
+  "profile.changeAvatar": "Изменить фото",
+  "profile.removeAvatar": "Удалить фото",
+  "profile.saving": "Сохраняем…",
+  "profile.avatarHint": "JPG, PNG или WebP до 5 МБ. Фото будет обрезано до квадрата.",
+  "profile.avatarInvalid": "Выберите изображение JPG, PNG или WebP до 5 МБ.",
+  "profile.avatarError": "Не удалось сохранить фото. Попробуйте ещё раз.",
+  "profile.saved": "Фото сохранено",
+  "profile.progress": "Ваш уровень фокуса",
+  "profile.levelRules": "Новый уровень за каждые 100 часов фокусировки.",
+  "profile.hours": "{hours} ч",
+  "profile.maxLevel": "Максимальный уровень достигнут",
+  "profile.nextLevel": "{hours} ч до уровня {level}",
+  "profile.countedTime": "Учитываются только завершённые сеансы фокусировки. Перерывы не учитываются. Предыдущие сеансы тоже входят в прогресс.",
+  "profile.settingsHint": "Таймер, перерывы, оформление и язык",
+
   'settings.durationMinutes': 'Длительность в минутах',
   'settings.intervalHint': 'Количество фокус-сессий до длинного перерыва',
   'sync.failed': 'Не удалось сохранить на сервере. Проверьте подключение и повторите попытку.',

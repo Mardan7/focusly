@@ -1,6 +1,24 @@
 import type { en } from './en'
 
 export const kk: { [K in keyof typeof en]: string } = {
+  "profile.back": "Профильге оралу",
+  "profile.level": "{level}-деңгей",
+  "profile.beginner": "Жаңадан бастаушы",
+  "profile.changeAvatar": "Фотоны өзгерту",
+  "profile.removeAvatar": "Фотоны жою",
+  "profile.saving": "Сақталуда…",
+  "profile.avatarHint": "JPG, PNG немесе WebP, 5 МБ дейін. Фото шаршы түрінде қиылады.",
+  "profile.avatarInvalid": "5 МБ дейінгі JPG, PNG немесе WebP суретін таңдаңыз.",
+  "profile.avatarError": "Фото сақталмады. Қайта көріңіз.",
+  "profile.saved": "Фото сақталды",
+  "profile.progress": "Фокус деңгейіңіз",
+  "profile.levelRules": "Әр 100 сағат фокус үшін жаңа деңгей.",
+  "profile.hours": "{hours} сағ",
+  "profile.maxLevel": "Ең жоғары деңгейге жеттіңіз",
+  "profile.nextLevel": "{level}-деңгейге дейін {hours} сағ",
+  "profile.countedTime": "Тек аяқталған фокус сеанстары есептеледі. Үзілістер есептелмейді. Бұрынғы сеанстар да есепке алынады.",
+  "profile.settingsHint": "Таймер, үзілістер, безендіру және тіл",
+
   'settings.durationMinutes': 'Ұзақтығы минутпен',
   'settings.intervalHint': 'Ұзақ үзіліске дейінгі фокус сессияларының саны',
   'sync.failed': 'Серверге сақтау мүмкін болмады. Байланысты тексеріп, қайталап көріңіз.',

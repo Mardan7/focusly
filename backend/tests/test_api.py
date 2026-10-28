@@ -73,6 +73,22 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get("/stats", headers=self.headers).json()["sessions"], 1)
         self.assertIsNone(self.client.get("/sessions", headers=self.headers).json()[0]["task_id"])
 
+    def test_avatar_persistence_validation_and_isolation(self):
+        avatar = "data:image/jpeg;base64,/9j/2Q=="
+        self.assertIsNone(self.client.get("/auth/me", headers=self.headers).json()["avatar"])
+        self.assertEqual(self.client.put("/auth/me/avatar", json={"avatar": avatar}).status_code, 401)
+        response = self.client.put("/auth/me/avatar", headers=self.headers, json={"avatar": avatar})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.get("/auth/me", headers=self.headers).json()["avatar"], avatar)
+        other = self.register("avatar-other@example.com")
+        self.assertIsNone(self.client.get("/auth/me", headers=other).json()["avatar"])
+        for invalid in ("https://example.com/photo.jpg", "data:image/svg+xml;base64,AA==", "data:image/jpeg;base64,broken", "data:image/jpeg;base64," + "a" * 180000):
+            self.assertEqual(self.client.put("/auth/me/avatar", headers=self.headers, json={"avatar": invalid}).status_code, 422)
+        self.assertEqual(self.client.get("/auth/me", headers=self.headers).json()["avatar"], avatar)
+        response = self.client.put("/auth/me/avatar", headers=self.headers, json={"avatar": None})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.json()["avatar"])
+
     def test_names_and_duplicate_registration(self):
         for name in ("  ", " a ", None, 123):
             self.assertEqual(self.client.patch("/auth/me", headers=self.headers, json={"name": name}).status_code, 422)

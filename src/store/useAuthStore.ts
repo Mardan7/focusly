@@ -13,6 +13,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<ApiUser>
   register: (name: string, email: string, password: string) => Promise<ApiUser>
   loadCurrentUser: () => Promise<ApiUser | null>
+  updateAvatar: (avatar: string | null) => Promise<void>
   logout: () => void
   clearError: () => void
 }
@@ -74,6 +75,12 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ loading: false })
         }
+      },
+      updateAvatar: async (avatar) => {
+        const token = get().token
+        if (!token) throw new Error('Not signed in')
+        const user = await apiRequest<ApiUser>('/auth/me/avatar', { method: 'PUT', body: JSON.stringify({ avatar }) }, token)
+        if (get().token === token) set({ user })
       },
       logout: () => {
         set({ token: null, user: null, error: null })

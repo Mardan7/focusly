@@ -20,6 +20,12 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(512))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
+    profile: Mapped[Optional["UserProfile"]] = relationship(uselist=False, cascade="all, delete-orphan")
+
+    @property
+    def avatar(self) -> Optional[str]:
+        return self.profile.avatar if self.profile else None
+
     tasks: Mapped[list["Task"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     sessions: Mapped[list["FocusSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     settings: Mapped[Optional["UserSettings"]] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -73,3 +79,10 @@ class UserSettings(Base):
     auto_fullscreen: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped[User] = relationship(back_populates="settings")
+
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    avatar: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

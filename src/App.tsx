@@ -11,7 +11,7 @@ const StatisticsPage = lazy(() => import('@/pages/StatisticsPage').then((module)
 import { TasksPage } from '@/pages/TasksPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
-import { ProfilePage } from '@/pages/ProfilePage'
+const ProfilePage = lazy(() => import('@/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
               <Route path="tasks" element={<TasksPage />} />
               <Route path="statistics" element={<Suspense fallback={<div role="status" aria-label="Loading" className="h-64 animate-pulse rounded-2xl bg-card" />}><StatisticsPage /></Suspense>} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile" element={<Suspense fallback={<div role="status" aria-label="Loading" className="h-64 animate-pulse rounded-2xl bg-card" />}><ProfilePage /></Suspense>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

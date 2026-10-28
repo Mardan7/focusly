@@ -2,6 +2,7 @@ export interface ApiUser {
   id: number
   name: string
   email: string
+  avatar?: string | null
   created_at: string
 }
 

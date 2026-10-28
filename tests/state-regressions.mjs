@@ -11,6 +11,17 @@ globalThis.localStorage = {
 
 const server = await createServer({ server: { middlewareMode: true }, appType: 'custom', optimizeDeps: { noDiscovery: true, include: [] } })
 try {
+  const { focusLevel } = await server.ssrLoadModule('/src/utils/level.ts')
+  const focus = (duration) => ({ type: 'focus', duration })
+  assert.equal(focusLevel([]).level, 0)
+  assert.equal(focusLevel([focus(100 * 3600 - 1)]).level, 0)
+  assert.equal(focusLevel([focus(100 * 3600)]).level, 1)
+  assert.equal(focusLevel([focus(250 * 3600)]).progress, 50)
+  assert.equal(focusLevel([focus(1000 * 3600)]).level, 10)
+  assert.equal(focusLevel([focus(1000 * 3600)]).remaining, 0)
+  assert.equal(focusLevel([focus(1100 * 3600)]).remaining, 0)
+  assert.equal(focusLevel([{ type: 'longBreak', duration: 360000 }, focus(-5), focus(NaN)]).hours, 0)
+
   const { backupAnonymousData, restoreAnonymousData, hydrateRemoteData } = await server.ssrLoadModule('/src/api/sync.ts')
   const { useTaskStore } = await server.ssrLoadModule('/src/store/useTaskStore.ts')
   const { useTimerStore } = await server.ssrLoadModule('/src/store/useTimerStore.ts')

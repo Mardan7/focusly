@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BarChart3, LayoutDashboard, Settings, Timer, CheckSquare } from 'lucide-react'
+import { BarChart3, LayoutDashboard, Timer, CheckSquare } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { ProfileCard } from '@/components/layout/ProfileCard'
 import { cn } from '@/utils/cn'
@@ -42,22 +42,6 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="space-y-3">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted',
-              isActive && 'bg-accent-soft text-text',
-            )
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <Settings size={18} className={isActive ? 'text-accent' : ''} />
-              {translate(language, 'nav.settings')}
-            </>
-          )}
-        </NavLink>
         <ProfileCard />
       </div>
     </aside>

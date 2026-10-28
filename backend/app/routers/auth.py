@@ -5,7 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from app.auth.deps import CurrentUser, DbSession
 from app.auth.security import create_access_token, hash_password, verify_password
 from app.models import User, UserSettings
-from app.schemas.auth import AuthResponse, ChangePasswordRequest, LoginRequest, ProfileUpdate, RegisterRequest, UserResponse
+from app.models.entities import UserProfile
+from app.schemas.auth import AvatarUpdate, AuthResponse, ChangePasswordRequest, LoginRequest, ProfileUpdate, RegisterRequest, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -59,3 +60,14 @@ def change_password(payload: ChangePasswordRequest, user: CurrentUser, db: DbSes
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
     user.hashed_password = hash_password(payload.new_password)
     db.commit()
+
+
+@router.put("/me/avatar", response_model=UserResponse)
+def update_avatar(payload: AvatarUpdate, user: CurrentUser, db: DbSession) -> UserResponse:
+    if user.profile is None:
+        user.profile = UserProfile(avatar=payload.avatar)
+    else:
+        user.profile.avatar = payload.avatar
+    db.commit()
+    db.refresh(user)
+    return UserResponse.model_validate(user)

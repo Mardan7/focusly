@@ -8,6 +8,7 @@ from fastapi import HTTPException, status
 
 from app.database import settings
 
+TOKEN_AUDIENCE = "focusly-neon-v1"
 
 def hash_password(password: str) -> str:
     salt = os.urandom(16)
@@ -28,13 +29,13 @@ def verify_password(password: str, stored: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     expires = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
-    return jwt.encode({"sub": str(user_id), "exp": expires}, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode({"sub": str(user_id), "exp": expires, "aud": TOKEN_AUDIENCE}, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
 def decode_access_token(token: str) -> int:
     credentials_error = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm], audience=TOKEN_AUDIENCE)
         subject = payload.get("sub")
         if not isinstance(subject, str):
             raise credentials_error

@@ -11,15 +11,27 @@ globalThis.localStorage = {
 
 const server = await createServer({ server: { middlewareMode: true }, appType: 'custom', optimizeDeps: { noDiscovery: true, include: [] } })
 try {
-  const { focusLevel } = await server.ssrLoadModule('/src/utils/level.ts')
+  const { focusLevel, minuteLevel } = await server.ssrLoadModule('/src/utils/level.ts')
+  const thresholds = [1, 501, 751, 950, 1150, 1350, 1530, 1700, 1850, 2000]
+  for (const [index, threshold] of thresholds.entries()) {
+    assert.equal(minuteLevel(threshold - 1).level, index)
+    assert.equal(minuteLevel(threshold).level, index + 1)
+  }
+  assert.equal(minuteLevel(2500).level, 10)
+  assert.equal(minuteLevel(2000).remaining, 0)
+  assert.equal(minuteLevel(2000).progress, 100)
+  assert.equal(minuteLevel(251).progress, 50)
+  assert.equal(minuteLevel(-1).level, 0)
   const focus = (duration) => ({ type: 'focus', duration })
   assert.equal(focusLevel([]).level, 0)
-  assert.equal(focusLevel([focus(100 * 3600 - 1)]).level, 0)
-  assert.equal(focusLevel([focus(100 * 3600)]).level, 1)
-  assert.equal(focusLevel([focus(250 * 3600)]).progress, 50)
-  assert.equal(focusLevel([focus(1000 * 3600)]).level, 10)
-  assert.equal(focusLevel([focus(1000 * 3600)]).remaining, 0)
-  assert.equal(focusLevel([focus(1100 * 3600)]).remaining, 0)
+  assert.equal(focusLevel([focus(59)]).level, 0)
+  assert.equal(focusLevel([focus(500 * 60)]).level, 1)
+  assert.equal(focusLevel([focus(501 * 60)]).level, 2)
+  assert.equal(focusLevel([focus(750 * 60)]).level, 2)
+  assert.equal(focusLevel([focus(751 * 60)]).level, 3)
+  assert.equal(focusLevel([focus(2000 * 60)]).level, 10)
+  assert.equal(focusLevel([focus(2000 * 60)]).remaining, 0)
+  assert.equal(focusLevel([focus(30), focus(30)]).minutes, 1)
   assert.equal(focusLevel([{ type: 'longBreak', duration: 360000 }, focus(-5), focus(NaN)]).hours, 0)
 
   const { backupAnonymousData, restoreAnonymousData, hydrateRemoteData } = await server.ssrLoadModule('/src/api/sync.ts')

@@ -1,15 +1,13 @@
-import { LogOut, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Logo } from '@/components/layout/Logo'
 import { PROFILE } from '@/data/seed'
 import { useI18n } from '@/i18n'
 import { useAuthStore } from '@/store/useAuthStore'
-import { Button } from '@/components/ui/Button'
 
 export function Header() {
   const { t } = useI18n()
   const user = useAuthStore((state) => state.user)
-  const logout = useAuthStore((state) => state.logout)
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 lg:hidden">
       <Logo compact={false} />
@@ -21,9 +19,6 @@ export function Header() {
         >
           <Settings size={16} />
         </Link>
-        <Button variant="ghost" size="sm" onClick={logout} className="shrink-0 px-2 text-danger">
-          <LogOut size={16} /> {t('auth.logout')}
-        </Button>
         <Link
           to="/profile"
           aria-label={t('profile.title')}

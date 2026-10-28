@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuthStore } from '@/store/useAuthStore'
-import { ArrowLeft, LogOut, Moon, Sun } from 'lucide-react'
+import { ArrowLeft, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Field, TextInput } from '@/components/ui/Input'
@@ -15,7 +14,6 @@ import { languageLabels } from '@/i18n/core'
 import { useLanguageStore, type Language } from '@/store/useLanguageStore'
 
 export function SettingsPage() {
-  const logout = useAuthStore((state) => state.logout)
   const settings = useSettingsStore()
   const update = settings.updateSettings
   const applyDurations = useTimerStore((state) => state.applyDurations)
@@ -24,7 +22,7 @@ export function SettingsPage() {
   const language = useLanguageStore((state) => state.language)
   const setLanguage = useLanguageStore((state) => state.setLanguage)
   const setNotification = async (enabled: boolean) => { if (enabled && !(await requestNotificationPermission())) { push({ kind: 'info', title: t('settings.notificationsUnavailable'), description: t('settings.allowNotifications') }); return } update({ desktopNotifications: enabled }) }
-  return <div className="space-y-5"><div className="flex flex-wrap items-center justify-between gap-3"><Link to="/" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted hover:text-text"><ArrowLeft size={18} />{t('focus.backDashboard')}</Link><Button variant="danger" onClick={logout}><LogOut size={16} />{t('auth.logout')}</Button></div><div><p className="text-sm text-accent">{t('settings.eyebrow')}</p><h1 className="mt-1 text-3xl font-semibold">{t('settings.title')}</h1></div><div className="grid gap-5 lg:grid-cols-2"><Card><h2 className="text-lg font-semibold">{t('settings.timer')}</h2><div className="mt-5 divide-y divide-border">
+  return <div className="space-y-5"><div className="flex flex-wrap items-center justify-between gap-3"><Link to="/" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted hover:text-text"><ArrowLeft size={18} />{t('focus.backDashboard')}</Link></div><div><p className="text-sm text-accent">{t('settings.eyebrow')}</p><h1 className="mt-1 text-3xl font-semibold">{t('settings.title')}</h1></div><div className="grid gap-5 lg:grid-cols-2"><Card><h2 className="text-lg font-semibold">{t('settings.timer')}</h2><div className="mt-5 divide-y divide-border">
   <TimerSetting label={t('settings.focusMinutes')} hint={t('settings.durationMinutes')} value={settings.focusDuration} min={1} max={90} onCommit={(value) => update({ focusDuration: value })} />
   <TimerSetting label={t('settings.shortBreak')} hint={t('settings.durationMinutes')} value={settings.shortBreak} min={1} max={30} onCommit={(value) => update({ shortBreak: value })} />
   <TimerSetting label={t('settings.longBreak')} hint={t('settings.durationMinutes')} value={settings.longBreak} min={1} max={60} onCommit={(value) => update({ longBreak: value })} />
